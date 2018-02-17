@@ -9,24 +9,29 @@
 #include <LiveWindow/LiveWindow.h>
 #include <SmartDashboard/SendableChooser.h>
 #include <SmartDashboard/SmartDashboard.h>
-#include <WPIlib.h>
 
 class Robot: public frc::IterativeRobot {
 public:
 	void RobotInit() {
 		talonTL = new Spark(0);
-		talonBL = new Talon(1);
-		talonTR = new Talon(2);
-		talonBR = new Talon(3);
+		talonBL = new Spark(1);
+		talonTR = new Spark(2);
+		talonBR = new Spark(3);
+		first = new VictorSP(4);
+		second = new VictorSP(5);
+		third = new VictorSP(6);
 		stick1 = new Joystick(1);
 
 		talonTL->SetInverted(true);
 		talonBL->SetInverted(true);
-		leftGroup = new SpeedControllerGroup(*talonTL,*talonBL);
+		leftGroup = new SpeedControllerGroup(*talonTL, *talonBL);
 
 		talonTR->SetInverted(true);
 		talonBR->SetInverted(true);
-		rightGroup = new SpeedControllerGroup(*talonTR,*talonBR);
+		rightGroup = new SpeedControllerGroup(*talonTR, *talonBR);
+
+		third->SetInverted(true);
+
 
 		drive = new DifferentialDrive(*leftGroup, *rightGroup);
 		gyro = new AnalogGyro(1);
@@ -80,8 +85,19 @@ public:
 	}
 
 	void TeleopPeriodic() {
-		std::cout << "Hello" << std::endl;
 		drive->ArcadeDrive(stick1->GetThrottle(),stick1->GetDirectionRadians());
+		third->Set(stick1->GetY());
+
+		if(stick1->GetRawButton(1)){
+			first->Set(1);
+			second->Set(-1);
+		} else if(stick1->GetRawButtonPressed(3)) {
+			first->Set(-1);
+			second->Set(1);
+		} else{
+			first->Set(0);
+			second->Set(0);
+		}
 	}
 
 	void TestPeriodic() {
@@ -90,9 +106,12 @@ public:
 
 private:
 	Spark *talonTL;
-	Talon *talonBL;
-	Talon *talonTR;
-	Talon *talonBR;
+	Spark *talonBL;
+	Spark *talonTR;
+	Spark *talonBR;
+	VictorSP *first;
+	VictorSP *second;
+	VictorSP *third;
 	Joystick *stick1;
 	DifferentialDrive *drive;
 	SpeedControllerGroup *leftGroup;
