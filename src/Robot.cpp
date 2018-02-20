@@ -17,10 +17,13 @@ public:
 		talonBL = new Spark(1);
 		talonTR = new Spark(2);
 		talonBR = new Spark(3);
-		first = new VictorSP(4);
-		second = new VictorSP(5);
-		third = new VictorSP(6);
-		stick1 = new Joystick(1);
+		LeftIntake = new VictorSP(4);
+		RightIntake = new VictorSP(5);
+		Elevator = new VictorSP(6);
+		pivot = new Talon(7);
+		IntakeJS = new Joystick(1);
+		IntakeArm = new Joystick(2);
+		XC = new XboxController(0);
 
 		talonTL->SetInverted(true);
 		talonBL->SetInverted(true);
@@ -30,7 +33,7 @@ public:
 		talonBR->SetInverted(true);
 		rightGroup = new SpeedControllerGroup(*talonTR, *talonBR);
 
-		third->SetInverted(true);
+		Elevator->SetInverted(true);
 
 
 		drive = new DifferentialDrive(*leftGroup, *rightGroup);
@@ -85,18 +88,19 @@ public:
 	}
 
 	void TeleopPeriodic() {
-		drive->ArcadeDrive(stick1->GetThrottle(),stick1->GetDirectionRadians());
-		third->Set(stick1->GetY());
+		drive->ArcadeDrive(XC->GetY(GenericHID::kLeftHand),XC->GetX(GenericHID::kLeftHand));
+		pivot->Set(IntakeArm->GetY());
+		Elevator->Set(IntakeJS->GetY());
 
-		if(stick1->GetRawButton(1)){
-			first->Set(1);
-			second->Set(-1);
-		} else if(stick1->GetRawButtonPressed(3)) {
-			first->Set(-1);
-			second->Set(1);
+		if(IntakeJS->GetRawButton(1)){
+			LeftIntake->Set(1);
+			RightIntake->Set(-1);
+		} else if(IntakeJS->GetRawButtonPressed(3)) {
+			LeftIntake->Set(-1);
+			RightIntake->Set(1);
 		} else{
-			first->Set(0);
-			second->Set(0);
+			LeftIntake->Set(0);
+			RightIntake->Set(0);
 		}
 	}
 
@@ -105,14 +109,17 @@ public:
 	}
 
 private:
+	Talon *pivot;
 	Spark *talonTL;
 	Spark *talonBL;
 	Spark *talonTR;
 	Spark *talonBR;
-	VictorSP *first;
-	VictorSP *second;
-	VictorSP *third;
-	Joystick *stick1;
+	VictorSP *LeftIntake;
+	VictorSP *RightIntake;
+	VictorSP *Elevator;
+	Joystick *IntakeJS;
+	Joystick *IntakeArm;
+	XboxController *XC;
 	DifferentialDrive *drive;
 	SpeedControllerGroup *leftGroup;
 	SpeedControllerGroup *rightGroup;
