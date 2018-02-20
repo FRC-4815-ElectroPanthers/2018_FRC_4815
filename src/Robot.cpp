@@ -9,6 +9,7 @@
 #include <LiveWindow/LiveWindow.h>
 #include <SmartDashboard/SendableChooser.h>
 #include <SmartDashboard/SmartDashboard.h>
+#include <ADIS16448IMU/ADIS16448_IMU.h>
 
 class Robot: public frc::IterativeRobot {
 public:
@@ -24,6 +25,7 @@ public:
 		IntakeJS = new Joystick(1);
 		IntakeArm = new Joystick(2);
 		XC = new XboxController(0);
+		gyro = new ADIS16448_IMU();
 
 		talonTL->SetInverted(true);
 		talonBL->SetInverted(true);
@@ -64,6 +66,8 @@ public:
 		//} else {
 			// Default Auto goes here
 		//}
+		timer = new Timer();
+		timer->Start();
 	}
 
 	void AutonomousPeriodic() {
@@ -72,14 +76,15 @@ public:
 		//} else {
 			// Default Auto goes here
 		//}
-		talonTL->Set(1.0);
-		talonBL->Set(1.0);
 
-		while(IsAutonomous() && IsEnabled()) {
+		if(!timer->HasPeriodPassed(5)) {
 			float angle = gyro->GetAngle();
 			float Kp = 0.03;
 			drive->ArcadeDrive(-1.0, -angle * Kp);
+		} else {
+			drive->ArcadeDrive(0, 0);
 		}
+
 
 	}
 
@@ -119,11 +124,12 @@ private:
 	VictorSP *Elevator;
 	Joystick *IntakeJS;
 	Joystick *IntakeArm;
+	Timer *timer;
 	XboxController *XC;
 	DifferentialDrive *drive;
 	SpeedControllerGroup *leftGroup;
 	SpeedControllerGroup *rightGroup;
-	AnalogGyro *gyro;
+	ADIS16448_IMU *gyro;
 	frc::LiveWindow* lw = LiveWindow::GetInstance();
 	//frc::SendableChooser<std::string> chooser;
 	//const std::string autoNameDefault = "Default";
