@@ -21,7 +21,7 @@ public:
 		talonBR = new Spark(3);
 		LeftIntake = new VictorSP(4);
 		RightIntake = new VictorSP(5);
-		Elevator = new ctre::phoenix::motorcontrol::can::WPI_TalonSRX(0);
+		Elevator = new ctre::phoenix::motorcontrol::can::WPI_TalonSRX(1);
 		pivot = new Talon(7);
 		IntakeJS = new Joystick(1);
 		IntakeArm = new Joystick(2);
