@@ -10,6 +10,7 @@
 #include <SmartDashboard/SendableChooser.h>
 #include <SmartDashboard/SmartDashboard.h>
 #include <ADIS16448IMU/ADIS16448_IMU.h>
+#include <ctre/phoenix/MotorControl/CAN/WPI_TalonSRX.h>
 
 class Robot: public frc::IterativeRobot {
 public:
@@ -20,7 +21,7 @@ public:
 		talonBR = new Spark(3);
 		LeftIntake = new VictorSP(4);
 		RightIntake = new VictorSP(5);
-		Elevator = new VictorSP(6);
+		Elevator = new ctre::phoenix::motorcontrol::can::WPI_TalonSRX(0);
 		pivot = new Talon(7);
 		IntakeJS = new Joystick(1);
 		IntakeArm = new Joystick(2);
@@ -39,7 +40,7 @@ public:
 
 
 		drive = new DifferentialDrive(*leftGroup, *rightGroup);
-		gyro = new AnalogGyro(1);
+		//gyro = new AnalogGyro(1);
 		//chooser.AddDefault(autoNameDefault, autoNameDefault);
 		//chooser.AddObject(autoNameCustom, autoNameCustom);
 		//frc::SmartDashboard::PutData("Auto Modes", &chooser);
@@ -94,8 +95,8 @@ public:
 
 	void TeleopPeriodic() {
 		drive->ArcadeDrive(XC->GetY(GenericHID::kLeftHand),XC->GetX(GenericHID::kLeftHand));
-		pivot->Set(IntakeArm->GetY());
-		Elevator->Set(IntakeJS->GetY());
+		pivot->Set(IntakeArm->GetY()*.25);
+		Elevator->ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Set(IntakeJS->GetY());
 
 		if(IntakeJS->GetRawButton(1)){
 			LeftIntake->Set(1);
@@ -121,7 +122,7 @@ private:
 	Spark *talonBR;
 	VictorSP *LeftIntake;
 	VictorSP *RightIntake;
-	VictorSP *Elevator;
+	ctre::phoenix::motorcontrol::can::WPI_TalonSRX *Elevator;
 	Joystick *IntakeJS;
 	Joystick *IntakeArm;
 	Timer *timer;
