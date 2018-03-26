@@ -22,11 +22,14 @@ public:
 		LeftIntake = new VictorSP(4);
 		RightIntake = new VictorSP(5);
 		Elevator = new ctre::phoenix::motorcontrol::can::WPI_TalonSRX(1);
-		pivot = new Talon(7);
+		Pivot = new Talon(6);
+		Elevator2 = new Talon(7);
 		IntakeJS = new Joystick(1);
 		IntakeArm = new Joystick(2);
 		XC = new XboxController(0);
 		gyro = new ADIS16448_IMU();
+		limitTop = new DigitalInput(0);
+		limitBottom = new DigitalInput(1);
 
 		talonTL->SetInverted(true);
 		talonBL->SetInverted(true);
@@ -40,6 +43,8 @@ public:
 
 
 		drive = new DifferentialDrive(*leftGroup, *rightGroup);
+
+		timer = new Timer();
 		//gyro = new AnalogGyro(1);
 		//chooser.AddDefault(autoNameDefault, autoNameDefault);
 		//chooser.AddObject(autoNameCustom, autoNameCustom);
@@ -67,7 +72,6 @@ public:
 		//} else {
 			// Default Auto goes here
 		//}
-		timer = new Timer();
 		timer->Start();
 	}
 
@@ -78,13 +82,15 @@ public:
 			// Default Auto goes here
 		//}
 
-		if(!timer->HasPeriodPassed(5)) {
-			float angle = gyro->GetAngle();
-			float Kp = 0.03;
-			drive->ArcadeDrive(-1.0, -angle * Kp);
+		if(timer->Get() < 15) {
+			//float angle = gyro->GetAngle();
+			//float Kp = 0.01;
+			drive->ArcadeDrive(-0.5, 0); //-angle * Kp);
 		} else {
 			drive->ArcadeDrive(0, 0);
+			timer->Stop();
 		}
+
 
 
 	}
@@ -94,16 +100,32 @@ public:
 	}
 
 	void TeleopPeriodic() {
-		drive->ArcadeDrive(XC->GetY(GenericHID::kLeftHand),XC->GetX(GenericHID::kLeftHand));
-		pivot->Set(IntakeArm->GetY()*.25);
-		Elevator->ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Set(IntakeJS->GetY());
+		drive->ArcadeDrive(XC->GetY(GenericHID::kLeftHand)*0.75,XC->GetX(GenericHID::kLeftHand)*-0.75);
+		Pivot->Set(IntakeJS->GetY()*.75);
+
+		if (!limitTop->Get() && IntakeArm->GetY() < 0) {
+
+			Elevator->ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Set(0);
+			Elevator2->Set(0);
+
+		} else if (!limitBottom->Get() && IntakeArm->GetY() > 0) {
+
+			Elevator->ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Set(0);
+			Elevator2->Set(0);
+
+		} else {
+
+			Elevator->ctre::phoenix::motorcontrol::can::WPI_TalonSRX::Set(IntakeArm->GetY());
+			Elevator2->Set(IntakeArm->GetY());
+
+		}
 
 		if(IntakeJS->GetRawButton(1)){
 			LeftIntake->Set(1);
 			RightIntake->Set(-1);
-		} else if(IntakeJS->GetRawButtonPressed(3)) {
-			LeftIntake->Set(-1);
-			RightIntake->Set(1);
+		} else if(IntakeJS->GetRawButton(3)) {
+			LeftIntake->Set(-0.5);
+			RightIntake->Set(0.5);
 		} else{
 			LeftIntake->Set(0);
 			RightIntake->Set(0);
@@ -115,7 +137,8 @@ public:
 	}
 
 private:
-	Talon *pivot;
+	Talon *Pivot;
+	Talon *Elevator2;
 	Spark *talonTL;
 	Spark *talonBL;
 	Spark *talonTR;
@@ -130,6 +153,8 @@ private:
 	DifferentialDrive *drive;
 	SpeedControllerGroup *leftGroup;
 	SpeedControllerGroup *rightGroup;
+	DigitalInput *limitTop;
+	DigitalInput *limitBottom;
 	ADIS16448_IMU *gyro;
 	frc::LiveWindow* lw = LiveWindow::GetInstance();
 	//frc::SendableChooser<std::string> chooser;
